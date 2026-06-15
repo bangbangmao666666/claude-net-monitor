@@ -29,7 +29,7 @@
 ## 安装
 
 ```bash
-git clone <this-repo> && cd claude-net-monitor
+git clone https://github.com/bangbangmao666666/claude-net-monitor.git && cd claude-net-monitor
 ./install.sh
 ```
 
