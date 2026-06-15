@@ -1,0 +1,6 @@
+# 运行期产物（安装在 ~/.claude/net-monitor，不入库）
+status
+monitor.pid
+heartbeat
+monitor.log
+.DS_Store
