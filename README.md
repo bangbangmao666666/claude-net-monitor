@@ -66,6 +66,32 @@ Claude Code 只支持一个 statusLine 命令。如果你已经在用别的状�
   结果原子写入 `~/.claude/net-monitor/status`。状态栏 30 秒不来读取（claude 关掉了）就自行退出，不留后台进程。
 - **`statusline.sh`**：Claude Code 调用，纯读文件、毫秒返回，并在守护进程没跑时按需拉起它。不发任何网络请求。
 - **`statusline-combined.sh`**：可选，合并网络监听与 cc-costline 到一行。
+- **`clash.sh`**：Clash(mihomo) API 操作模块（被 monitor.sh 调用），负责日本节点的列举、测速与切换。
+
+## 自动切换日本节点（可选，默认开启）
+
+代理出境持续变差时，自动在所有**日本节点**之间切到延迟最低的健康节点——只在日本节点间切，
+绝不切到其它地区（固定日本可防某些服务因地区跳变封号）。
+
+- 触发：代理断、或延迟 > `SWITCH_THRESHOLD_MS`（默认 1500ms），且**连续 `BAD_STREAK`（默认 3）次**都坏
+- 冷却：一次切换后 `COOLDOWN`（默认 60 秒）内不再切，防止来回横跳
+- 选择：触发时实测所有日本节点延迟，挑最快的健康节点；当前已最优则不切；全部不健康则保持不动
+- 反馈：切换成功后状态栏短暂显示新节点，如 `🟢 312ms ⇄OS-1`；明细记入 `monitor.log`
+- 目标组：按 Clash 运行模式自动选（`global`→`GLOBAL`，`rule`→`Proxy`）
+
+依赖 Clash 的本地控制接口（mihomo unix socket，默认 `/var/tmp/verge/verge-mihomo.sock`，无需 secret）。
+关闭自动切换：把 `monitor.sh` 顶部 `AUTO_SWITCH` 设为 `0`（或删除 `clash.sh`，会自动退回纯监听）。
+
+切换相关常量在 `monitor.sh` 顶部：
+
+| 常量 | 默认 | 说明 |
+|---|---|---|
+| `AUTO_SWITCH` | `1` | 1 开启自动切换，0 仅监听 |
+| `SWITCH_THRESHOLD_MS` | `1500` | 代理延迟超过此值视为坏 |
+| `BAD_STREAK` | `3` | 连续坏多少次才切 |
+| `COOLDOWN` | `60` | 切换后冷却秒数 |
+
+日本节点的识别规则可在 `clash.sh` 顶部 `JAPAN_PATTERN`（默认 `日本`）调整。
 
 ## 自定义
 
