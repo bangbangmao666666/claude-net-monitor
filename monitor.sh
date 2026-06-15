@@ -134,7 +134,7 @@ do_switch() {
     return
   fi
   if [[ "$best" == "$cur" ]]; then
-    log_switch "已是最优日本节点 $cur，不切"
+    log_switch "已是最优日本节点 ${cur}，不切"
     LAST_SWITCH_EPOCH=$(date +%s)
     return
   fi
