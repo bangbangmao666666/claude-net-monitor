@@ -24,7 +24,7 @@ probe_direct() {
   out=$(curl -s -o /dev/null --max-time "$TIMEOUT" \
     -w '%{http_code} %{time_total}' "$DIRECT_URL" 2>/dev/null) || { echo "fail"; return; }
   code=${out%% *}
-  if [[ "$code" =~ ^2|^3 ]]; then
+  if [[ "$code" =~ ^[23][0-9][0-9]$ ]]; then  # 2xx/3xx 视为通
     echo "ok ${out##* }"
   else
     echo "fail"
@@ -32,12 +32,13 @@ probe_direct() {
 }
 
 # 代理探测：HEAD 请求，成功输出 "ok <ms>"，失败输出 "fail"
+# 注：--proxy 的 http:// 指代理本身的协议（Clash 混合端口），与目标 URL 的 https 无关
 probe_proxy() {
   local out code
   out=$(curl -sI -o /dev/null --max-time "$TIMEOUT" --proxy "$PROXY" \
     -w '%{http_code} %{time_total}' "$PROXY_URL" 2>/dev/null) || { echo "fail"; return; }
   code=${out%% *}
-  if [[ "$code" =~ ^2|^3 ]]; then
+  if [[ "$code" =~ ^[23][0-9][0-9]$ ]]; then  # 2xx/3xx 视为通
     echo "ok ${out##* }"
   else
     echo "fail"
