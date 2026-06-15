@@ -96,9 +96,9 @@ write_status() {
   printf '%s\n' "$1" > "$tmp" && mv -f "$tmp" "$STATUS_FILE"
 }
 
-# 节点名简称：日本-OS-1-流量倍率:0.6 -> OS-1
+# 节点名简称：去掉地区前缀（首个 - 之前）与 -流量倍率 后缀。日本-OS-1-流量倍率:0.6 -> OS-1
 short_name() {
-  local n="$1"; n="${n#日本-}"; n="${n%%-流量倍率*}"; echo "$n"
+  local n="$1"; n="${n#*-}"; n="${n%%-流量倍率*}"; echo "$n"
 }
 
 # 切换日志（写到 stderr，nohup 会汇入 monitor.log）
