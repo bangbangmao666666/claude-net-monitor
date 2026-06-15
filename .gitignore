@@ -4,3 +4,6 @@ monitor.pid
 heartbeat
 monitor.log
 .DS_Store
+
+# 设计/计划草稿，仅本地保留（含本机路径等个人信息，不公开）
+docs/
