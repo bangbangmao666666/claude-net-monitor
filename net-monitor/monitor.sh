@@ -85,3 +85,43 @@ if [[ "${1:-}" == "--once" ]]; then
   run_once
   cat "$STATUS_FILE"
 fi
+
+# ---- 守护主流程（无参数运行时进入）----
+
+# heartbeat 是否超时：无文件或 mtime 距今 > HEARTBEAT_TTL 视为超时
+heartbeat_stale() {
+  [[ -f "$HEARTBEAT_FILE" ]] || return 0
+  local now mtime age
+  now=$(date +%s)
+  mtime=$(stat -f %m "$HEARTBEAT_FILE" 2>/dev/null || echo 0)
+  age=$(( now - mtime ))
+  (( age > HEARTBEAT_TTL ))
+}
+
+main_loop() {
+  # 单实例：已有存活进程则退出
+  if [[ -f "$PID_FILE" ]]; then
+    local oldpid; oldpid=$(cat "$PID_FILE" 2>/dev/null || echo "")
+    if [[ -n "$oldpid" ]] && kill -0 "$oldpid" 2>/dev/null; then
+      exit 0
+    fi
+  fi
+  echo $$ > "$PID_FILE"
+  # 启动时先写一个初始状态，避免状态栏长时间空白
+  [[ -f "$STATUS_FILE" ]] || write_status "⚪ 检测中"
+
+  trap 'rm -f "$PID_FILE"; exit 0' INT TERM
+  while true; do
+    if heartbeat_stale; then
+      rm -f "$PID_FILE"
+      exit 0
+    fi
+    run_once
+    sleep "$INTERVAL"
+  done
+}
+
+# 仅在无参数（非 --once、非被 source）时进入守护循环
+if [[ "${1:-}" != "--once" ]] && [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  main_loop
+fi
